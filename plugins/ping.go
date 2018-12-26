@@ -1,11 +1,11 @@
 package main
 
 import (
-	"fmt"
+	"github.com/bwmarrin/discordgo"
 )
 
 var Name string = "Ping"
 
-func RegisterCommand(test string) {
-	fmt.Println("just imagine it actually does shit for now - ", test)
+func RegisterCommand(test string, s *discordgo.Session, m *discordgo.MessageCreate) {
+	s.ChannelMessageSend(m.ChannelID, "Pong!")
 }

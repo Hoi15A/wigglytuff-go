@@ -19,7 +19,7 @@ var (
 	Prefix string
 )
 
-var commands map[string]func(string)
+var commands map[string]func(string, *discordgo.Session, *discordgo.MessageCreate)
 
 func init() {
 	flag.StringVar(&Token, "t", "", "Bot Token")
@@ -75,13 +75,13 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	commandName := strings.Split(m.Content, " ")[0]
 	args := strings.Replace(m.Content, commandName+" ", "", 1)
 	if val, ok := commands[commandName]; ok {
-		val(args)
+		val(args, s, m)
 	}
 }
 
-func loadPlugins() map[string]func(string) {
-	commands := make(map[string]func(string))
-	files, err := ioutil.ReadDir("./")
+func loadPlugins() map[string]func(string, *discordgo.Session, *discordgo.MessageCreate) {
+	commands := make(map[string]func(string, *discordgo.Session, *discordgo.MessageCreate))
+	files, err := ioutil.ReadDir("./build")
 
 	if err != nil {
 		panic(err)
@@ -91,8 +91,8 @@ func loadPlugins() map[string]func(string) {
 		fileName := file.Name()
 		fmt.Println("file:", fileName)
 
-		if strings.HasSuffix(fileName, ".wannabeso") { // Note, dont keep this stupid extension
-			p, err := plugin.Open(fileName)
+		if strings.HasSuffix(fileName, ".so") { // Note, dont keep this stupid extension
+			p, err := plugin.Open("./build/" + fileName)
 
 			if err != nil {
 				panic(err)
@@ -108,12 +108,11 @@ func loadPlugins() map[string]func(string) {
 
 			var name string = *(_name.(*string))
 
-			commands[name] = regCommand.(func(string))
+			commands[name] = regCommand.(func(string, *discordgo.Session, *discordgo.MessageCreate))
 
 			fmt.Println("name:", name)
 		}
 
-		// TODO: load plugin ;)
 	}
 	return commands
 }
